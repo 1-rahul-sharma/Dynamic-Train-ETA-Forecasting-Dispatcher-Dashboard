@@ -1,0 +1,19 @@
+# Local environment and secrets
+.env
+.env.*
+!.env.example
+
+# Kept outside the public source repository
+Train_ETA_Project_Report.pdf
+
+# Editor and operating-system files
+.vscode/
+.idea/
+*.swp
+*.swo
+Thumbs.db
+Desktop.ini
+
+# Logs and temporary files
+*.log
+*.tmp
