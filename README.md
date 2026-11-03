@@ -1,55 +1,90 @@
-# Train ETA Dashboard
+# Dynamic Train ETA Forecasting & Dispatcher Dashboard
 
-A PHP and MySQL demonstration dashboard for monitoring train services, estimating arrival times, and simulating dispatcher updates.
+A PHP and MySQL web application that demonstrates a train operations dashboard. Explore a sample rail fleet, view route-level arrival estimates, analyze forecast delays by station, and simulate dispatcher updates.
 
-## Features
+> **Project scope:** This is an educational demonstration that uses seeded timetable data and a simple forecast rule. It does not retrieve live railway data and is not suitable for real-world dispatching.
 
-- Train fleet overview with current stations, delay status, and route links.
-- Per-train route progress and estimated arrival times.
-- Network board of upcoming arrivals and station-level delay summaries.
-- Dispatcher controls to adjust delays, update a train's current station, and record disruptions.
-- Recent-operations audit trail stored in MySQL.
-- Sample trains and schedules for trying the dashboard locally.
+## Dashboard capabilities
 
-> **Note:** This project uses demonstration timetable data and a simple forecast rule. It does not connect to a live railway data feed and is not intended for operational use.
+- **Fleet overview:** View train numbers, names, current stations, delay minutes, and service status.
+- **Train route detail:** Select a service to see its route, current position, progress, scheduled stops, and estimated arrival times.
+- **Upcoming arrivals:** See each train's next scheduled station alongside its scheduled and forecast arrival times.
+- **Station analysis:** Compare scheduled service counts and forecast average and peak delays across stations.
+- **Dispatcher simulation:** Add five delay minutes, apply up to three minutes of recovery, update a train's current station, or record a disruption.
+- **Operations history:** Review the 12 most recent dispatcher events, including the train, station, time, notes, and delay change.
+- **Sample data:** Start with six example services and their five-stop schedules.
+
+## Technology
+
+- PHP with the `mysqli` extension
+- MySQL or MariaDB
+- HTML and CSS (the dashboard styling is included in `index.php`)
 
 ## Requirements
 
-- Windows with [XAMPP](https://www.apachefriends.org/) or another PHP/MySQL environment.
-- PHP with the `mysqli` extension enabled.
+- Windows with [XAMPP](https://www.apachefriends.org/) or another compatible PHP and MySQL environment.
+- PHP with `mysqli` enabled.
 - MySQL or MariaDB.
 
 ## Run locally with XAMPP
 
-1. Copy or clone this project into XAMPP's `htdocs` directory. For example:
+1. Clone the repository into XAMPP's `htdocs` directory:
 
-   ```text
-   C:\xampp\htdocs\CA3Project
+   ```powershell
+   cd C:\xampp\htdocs
+   git clone https://github.com/1-rahul-sharma/Dynamic-Train-ETA-Forecasting-Dispatcher-Dashboard.git CA3Project
    ```
 
-2. Start **Apache** and **MySQL** from the XAMPP Control Panel.
-3. Open [phpMyAdmin](http://localhost/phpmyadmin), select **Import**, choose `setup.sql`, and run the import. This creates the `rail_simple` database, its tables, and sample train data.
-4. Open [http://localhost/CA3Project/](http://localhost/CA3Project/) in your browser.
+   Alternatively, download the repository as a ZIP and extract it to `C:\xampp\htdocs\CA3Project`.
 
-The app connects to MySQL at `localhost` using the XAMPP default `root` account with no password. If your local MySQL credentials differ, update the connection in `index.php` before running the project.
+2. Open the XAMPP Control Panel and start **Apache** and **MySQL**.
+3. Open [phpMyAdmin](http://localhost/phpmyadmin), select **Import**, choose `setup.sql` from the project folder, and run it. The script creates the `rail_simple` database, its tables, and the sample services and stops.
+4. Visit [http://localhost/CA3Project/](http://localhost/CA3Project/) in your browser.
 
-## Using the dashboard
+### Database connection
 
-Choose a train to inspect its route and ETA forecasts. The scenario controls can add five minutes of delay, apply up to three minutes of recovery, change the train's current station, or record a disruption. Changes are saved in the local database and appear in the recent-operations log.
+By default, `index.php` connects to MySQL at `localhost` as `root` with an empty password, which matches a typical local XAMPP installation. If your local configuration differs, update the connection near the top of `index.php`.
 
-The forecast estimates remaining delay by reducing it by three minutes at each successive scheduled stop, never below zero. This is a demonstration assumption, not a predictive model based on live operations.
+## Forecast and status rules
+
+For a stop at route sequence number `n`, the demonstration forecast is:
+
+```text
+forecast delay = max(0, current train delay - 3 × n) minutes
+estimated arrival = scheduled arrival + forecast delay
+```
+
+The same schedule-based rule is used for the displayed stop forecasts and station summaries. The current service status is **On time** at zero delay, **Delayed** at 1–15 minutes, and **Major delay** above 15 minutes. The three-minute recovery per stop is a fixed assumption, not a learned or live prediction.
+
+## Database overview
+
+`setup.sql` creates the following tables in the `rail_simple` database:
+
+| Table | Purpose |
+| --- | --- |
+| `trains` | Train number, service name, current station, and current delay. |
+| `stops` | Ordered scheduled stops and timetable times for each train. |
+| `train_events` | Dispatcher activity history, including event details, station, and delay change. |
+
+The sample inserts use `INSERT IGNORE`, so importing the setup script again does not reset existing train delays or overwrite existing sample rows.
 
 ## Project files
 
 | File | Description |
 | --- | --- |
-| `index.php` | Dashboard interface and PHP application logic. |
-| `setup.sql` | Database schema and sample train/schedule data. |
+| `index.php` | Dashboard rendering, forecast calculations, database access, and dispatcher actions. |
+| `setup.sql` | Database and table definitions plus sample train and timetable data. |
+| `.gitignore` | Excludes local environment files, editor clutter, logs, and the separate report PDF. |
 
-The separate `Train_ETA_Project_Report.pdf` is not included in this repository.
+The separate `Train_ETA_Project_Report.pdf` is intentionally not included in this repository.
 
 ## Troubleshooting
 
-- **Database connection error:** Confirm MySQL is running, `setup.sql` was imported, and the credentials in `index.php` match your local MySQL setup.
-- **Page downloads instead of opening:** Confirm Apache is running and open the project through `http://localhost/CA3Project/`, not as a file on disk.
-- **Missing `mysqli` errors:** Enable/install PHP's `mysqli` extension in your PHP environment.
+- **Database connection error:** Make sure MySQL is running, `setup.sql` imported successfully, and the credentials in `index.php` match your local MySQL configuration.
+- **The page downloads instead of opening:** Start Apache and use `http://localhost/CA3Project/` rather than opening `index.php` from the file system.
+- **`mysqli` is unavailable:** Enable the `mysqli` PHP extension in your environment.
+- **The dashboard has no train data:** Import `setup.sql` into the MySQL server used by the app.
+
+## Security note
+
+The default credentials are intended only for a local development environment. The demonstration does not include user authentication or the security controls required for an internet-facing production deployment. Do not expose it publicly with default database credentials or real operational data.
